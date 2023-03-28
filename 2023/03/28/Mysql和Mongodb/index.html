@@ -17,7 +17,7 @@
   <meta name="description" content="">
   <meta name="author" content="John Doe">
   <meta name="keywords" content="">
-  <title>关于 - Hexo</title>
+  <title>Mysql和Mongodb - Hexo</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
 
@@ -33,6 +33,8 @@
     
   
 
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
   
 
 
@@ -61,7 +63,7 @@
 
 
 <body>
-  <header style="height: 60vh;">
+  <header style="height: 70vh;">
     <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
     <a class="navbar-brand"
@@ -160,9 +162,46 @@
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
           <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="关于">
+            <span class="h2" id="subtitle" title="Mysql和Mongodb">
               
             </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2023-03-28 22:26" pubdate>
+        2023年3月28日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      963 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      10
+       分钟
+    </span>
+  
+
+  
+  
+</div>
 
             
           </div>
@@ -175,77 +214,94 @@
 
   <main>
     
-      <div class="container nopadding-x-md">
-        <div class="py-5" id="board"
-          >
-          
-            <div class="about-avatar">
-              <img src="/img/avatar.png" srcset="/img/loading.gif"
-                   class="img-fluid" alt="avatar">
-            </div>
-          
-          <div class="container">
-            <div class="row">
-              <div class="col-12 col-md-10 m-auto">
-                
+      
 
-<div class="text-center">
-  <div class="about-info">
-    <div class="about-name">Rachel Fang</div>
-    <div class="about-intro">不要去找麻烦</div>
-    <div class="about-icons">
-      
-        
-        
-        
-        <a target="_blank" rel="noopener" href="https://github.com" class="
-           hint--bottom hint--rounded"
-           aria-label=GitHub
-        >
-          <i class="iconfont icon-github-fill" aria-hidden="true"></i>
-          
-        </a>
-      
-        
-        
-        
-        <a href="/home/fang/blog/blog/themes/my.github.io-main/home.html" class="
-           hint--bottom hint--rounded"
-           aria-label=连接
-        >
-          <i class="iconfont icon-douban-fill" aria-hidden="true"></i>
-          
-        </a>
-      
-        
-        
-        
-        <a href="javascript:;" class="qr-trigger
-           "
-           
-        >
-          <i class="iconfont icon-wechat-fill" aria-hidden="true"></i>
-          
-            <img class="qr-img" src="/img/sakura.png" srcset="/img/loading.gif" alt="qrcode" />
-          
-        </a>
-      
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Mysql和Mongodb</h1>
+            
+            <div class="markdown-body">
+              <h2 id="关系型数据库和非关系型数据库区别"><a href="#关系型数据库和非关系型数据库区别" class="headerlink" title="关系型数据库和非关系型数据库区别"></a>关系型数据库和非关系型数据库区别</h2><p>SQL之所以称为<strong>关系型数据库</strong>，是因为它将结构化数据组织定义为行和列，每个表都与数据库中的其他表相关。</p>
+<p>另一方面，NoSQL被称为非关系数据库，这是因为数据以集合的形式存储，它们之间没有或只有很少的关系。关系型数据库强调数据的一致性。</p>
+<h2 id="Mongodb"><a href="#Mongodb" class="headerlink" title="Mongodb"></a>Mongodb</h2><p>具有关系：嵌入式关系和引用式关系</p>
+<p>嵌入式：直接将需要嵌入的N个字段写入一个字段中<br>引用式关系：通过ObjectId实现</p>
+<p>索引底层：B树<br>索引类型：主键索引、组合索引等等</p>
+<p>存储方式：虚拟内存+持久化。</p>
+<p>查询语句：是独特的Mongodb的查询方式。</p>
+<p>适合场景：事件的记录，内容管理或者博客平台等等。</p>
+<p>架构特点：可以通过副本集，以及分片来实现高可用。</p>
+<p>数据处理：数据是存储在硬盘上的，只不过需要经常读取的数据会被加载到内存中，将数据存储在物理内存中，从而达到高速读写。</p>
+<h2 id="对比"><a href="#对比" class="headerlink" title="对比"></a>对比</h2><p>当考虑使用大型数据库时，与MongoDB相比，MySQL的运行速度很慢。这主要是由于MySQL无法用于大量和非结构化的数据。但是，MongoDB具有处理大型非结构化数据的能力。因此，它比考虑大型数据库的MySQL更快，因为它允许用户以减少服务器负载的方式进行查询。</p>
+<p>MySQL支持主从复制和主主复制。另一方面，MongoDB支持内置的复制，分片和自动选择。因此，借助MongoDB中的自动选择，您可以设置另一个数据库或辅助数据库，以在主数据库发生故障时自动接管。</p>
+<h2 id="Why-Mongodb-is-faster"><a href="#Why-Mongodb-is-faster" class="headerlink" title="Why Mongodb is faster"></a>Why Mongodb is faster</h2><h3 id="1-针对写入操作"><a href="#1-针对写入操作" class="headerlink" title="1.针对写入操作"></a>1.针对写入操作</h3><p>MongoDB的写入速度更快。写操作MongoDB比传统数据库快的根本原因是Mongo使用的内存映射技术 － 写入数据时候只要在内存里完成就可以返回给应用程序，这样并发量自然就很高。而保存到硬体的操作则在后台异步完成。注意MongoDB在2.4就已经是默认安全写了（具体实现在驱动程序里）</p>
+<h3 id="2-针对读取操作"><a href="#2-针对读取操作" class="headerlink" title="2.针对读取操作"></a>2.针对读取操作</h3><p>如果是针对等值查询（如=1），MongoDB会更快一些。但针对范围查询，则MySQL更快一些。</p>
+<p>读操作MongoDB快的原因是：<br>1）MongoDB的设计要求你常用的数据（working set)可以在内存里装下。这样大部分操作只需要读内存，自然很快。<br>2）文档性模式设计一般会是的你所需要的数据都相对集中在一起（内存或硬盘），大家知道硬盘读写耗时最多是随机读写所产生的磁头定位时间，数据集中在一起则减少了关系性数据库需要从各个地方去把数据找过来（然后Join）所耗费的随机读时间</p>
+<h2 id="使用场景"><a href="#使用场景" class="headerlink" title="使用场景"></a>使用场景</h2><p>总体上看，如果项目的<strong>数据模式是固定的</strong>，而且<strong>不需要频繁变更</strong>，推荐使用 <strong>MySQL</strong>，因此项目维护容易，而且确保了数据的完整性和可靠性。</p>
+<p>另一方面，如果项目中的<strong>数据持续增加</strong>，而且<strong>数据模式不固定</strong>，MongoDB 是最合适的选择。由于它属于非关系数据库，数据可以自由使用，不需要定义统一的数据结构，所以对数据进行更新和查询也很方便。MongoDB 通常用于需要对内容进行管理、处理物联网相关业务、进行实时分析等功能的项目中。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Database/">Database</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/07/30/distributed-system/">
+                        <span class="hidden-mobile">distributed system</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
     </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
   </div>
 </div>
 
-<article class="mt-5 markdown-body">
-  <p>一棵学CS的植物，不定时更新owo</p>
-
-</article>
+<!-- Custom -->
 
 
-
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     
 
     
@@ -325,7 +381,11 @@
 
 
 
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js" ></script>
 
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
 
 
 
