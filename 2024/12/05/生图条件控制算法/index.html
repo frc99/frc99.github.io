@@ -217,13 +217,22 @@
             
                 <span class="meta-info-item post-update-date">
                     <i class="icon fa-solid fa-file-pen"></i>&nbsp;
-                    <span class="datetime" data-updated="Fri Dec 06 2024 11:28:16 GMT+0800">2024-12-06 11:28:16</span>
+                    <span class="datetime" data-updated="Tue Dec 10 2024 16:45:47 GMT+0800">2024-12-10 16:45:47</span>
                 </span>
             
         
 
         
 
+        
+            <span class="post-tag meta-info-item border-box">
+                <ul class="post-tag-ul">
+                    
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/Stable-Diffusion/">Stable Diffusion</a></li>
+                        
+                    
+                </ul>
+            </span>
         
 
         
@@ -254,8 +263,12 @@
 <img   src="https://s3.bmp.ovh/imgs/2024/12/05/14d92b140a52b5e4.png"  alt="效果" ><br />
 那么，ControlNet是如何与SD的UNet结合的呢？ControlNet拷贝原始UNet Encoder和Middle块，再用零卷积（zero convolution）连接到原 SD 网络。零卷积是 1×1卷积，并且权重和偏置都初始化为零，这样在开始训练ControlNet之前，所有zero convolution模块的输出都为零，使得ControlNet完完全全就在原模型的能力上进行微调训练。<br />
 <img   src="https://s3.bmp.ovh/imgs/2024/12/05/a34290573e2e8069.png"  alt="ControlNet" ><br />
-详细来说，ControlNet block 的输出会和对应的 Unet Encoder(Middle) block 的输出元素加在一起， 然后通过跳跃连接输入给对应的 Unet Decoder block 。注意，这个 ControlNet 的 block 输出和 Unet Encoder(Middle) block 输出加一起的结果， 并不会向下传递给下一层的 Unet Encoder(Middle) block，只会通过跳跃连接输入给对应的 Unet Decoder block， 所以增加了 ControlNet 并不影响原来 Unet 的网络结构 。<br />
-因为复制了一半的UNet权重，通常ControlNet的模型也会比较大（1.5G左右），因此会增加模型加载和执行推理的时间。</p>
+详细来说，ControlNet block 的输出会和对应的 Unet Encoder(Middle) block 的输出元素加在一起， 然后通过跳跃连接输入给对应的 Unet Decoder block 。注意，这个 ControlNet 的 block 输出和 Unet Encoder(Middle) block 输出加一起的结果， 并不会向下传递给下一层的 Unet Encoder(Middle) block，只会通过跳跃连接输入给对应的 Unet Decoder block， 所以增加了 ControlNet 并不影响原来 Unet 的网络结构。</p>
+<p>在推理中，ControlNet代码实现逻辑：</p>
+<p>1、Control计算：初始化一个total_controlnet_embedding = [0.0] * 13，13个块，预处理图片将control增量信息存入context，加载control_model后计算control，将control计算结果嵌入total_controlnet_embedding。<br />
+2、UNet计算：会有一个栈hs，每计算完一个encoder block将结果依次入栈hs，middle block和controlnet对应块（total_controlnet_embedding.pop()）相加（不是张量拼接），在计算decoder block时，将栈hs中的值依次弹出，和controlnet的结果相加。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># U-Net Encoder</span></span><br><span class="line">hs = []</span><br><span class="line"><span class="keyword">with</span> th.no_grad():</span><br><span class="line">    t_emb = cond_cast_unet(timestep_embedding(timesteps, <span class="variable language_">self</span>.model_channels, repeat_only=<span class="literal">False</span>))</span><br><span class="line">    emb = <span class="variable language_">self</span>.time_embed(t_emb)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> is_sdxl:</span><br><span class="line">        <span class="keyword">assert</span> y.shape[<span class="number">0</span>] == x.shape[<span class="number">0</span>]</span><br><span class="line">        emb = emb + <span class="variable language_">self</span>.label_emb(y)</span><br><span class="line"></span><br><span class="line">        h = x</span><br><span class="line">        <span class="keyword">for</span> i, module <span class="keyword">in</span> <span class="built_in">enumerate</span>(<span class="variable language_">self</span>.input_blocks):</span><br><span class="line">            <span class="variable language_">self</span>.current_h_shape = (h.shape[<span class="number">0</span>], h.shape[<span class="number">1</span>], h.shape[<span class="number">2</span>], h.shape[<span class="number">3</span>])</span><br><span class="line">            h = module(h, emb, context)</span><br><span class="line"></span><br><span class="line">            t2i_injection = [<span class="number">3</span>, <span class="number">5</span>, <span class="number">8</span>] <span class="keyword">if</span> is_sdxl <span class="keyword">else</span> [<span class="number">2</span>, <span class="number">5</span>, <span class="number">8</span>, <span class="number">11</span>]</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> i <span class="keyword">in</span> t2i_injection:</span><br><span class="line">                h = aligned_adding(h, total_t2i_adapter_embedding.pop(<span class="number">0</span>), require_inpaint_hijack)</span><br><span class="line"></span><br><span class="line">            hs.append(h)</span><br><span class="line"></span><br><span class="line">        <span class="variable language_">self</span>.current_h_shape = (h.shape[<span class="number">0</span>], h.shape[<span class="number">1</span>], h.shape[<span class="number">2</span>], h.shape[<span class="number">3</span>])</span><br><span class="line">        h = <span class="variable language_">self</span>.middle_block(h, emb, context)</span><br><span class="line"></span><br><span class="line"><span class="comment"># U-Net Middle Block</span></span><br><span class="line">h = aligned_adding(h, total_controlnet_embedding.pop(), require_inpaint_hijack)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="built_in">len</span>(total_t2i_adapter_embedding) &gt; <span class="number">0</span> <span class="keyword">and</span> is_sdxl:</span><br><span class="line">    h = aligned_adding(h, total_t2i_adapter_embedding.pop(<span class="number">0</span>), require_inpaint_hijack)</span><br><span class="line"></span><br><span class="line"><span class="comment"># U-Net Decoder</span></span><br><span class="line">    <span class="keyword">for</span> i, module <span class="keyword">in</span> <span class="built_in">enumerate</span>(<span class="variable language_">self</span>.output_blocks):</span><br><span class="line">        <span class="variable language_">self</span>.current_h_shape = (h.shape[<span class="number">0</span>], h.shape[<span class="number">1</span>], h.shape[<span class="number">2</span>], h.shape[<span class="number">3</span>])</span><br><span class="line">        h = th.cat([h, aligned_adding(hs.pop(), total_controlnet_embedding.pop(), require_inpaint_hijack)], dim=<span class="number">1</span>)</span><br><span class="line">        h = module(h, emb, context)</span><br><span class="line"></span><br><span class="line"><span class="comment"># U-Net Output</span></span><br><span class="line">h = h.<span class="built_in">type</span>(x.dtype)</span><br><span class="line">h = <span class="variable language_">self</span>.out(h)</span><br></pre></td></tr></table></figure>
+<p>因为复制了一半的UNet权重，通常ControlNet的模型也会比较大（1.5G左右），因此会增加模型加载和执行推理的时间。</p>
 <h1 id="2-ipadapter"><a class="markdownIt-Anchor" href="#2-ipadapter"></a> 2 IPAdapter</h1>
 <p>以往要想实现一个具体的设计风格，需要针对性的训练lora，背后涉及训练素材的搜集、打标、模型训练、效果检验，而通过IP-Adapter可以快速直观得生成效果图。<br />
 垫图神器IPAdapter提供整图风格迁移能力，与直接图生图有本质区别，原理上图生图是在原图加噪点基础上做演化生成，IPAdapter 是让模型认识图片风格要素，生成跟原图宏观风格一致的图片。<br />
@@ -306,7 +319,10 @@ InstantID架构：<br />
 <li>分别通过4个特征提取块和3个下采样块以获取多尺度特征，特征提取块由 Conv + residual blocks 组成。</li>
 </ul>
 <p>与ControlNet的区别：</p>
-<p>ControlNet的运行计算成本很高。这是因为在反向扩散过程的每个去噪步骤中，都需要运行 ControlNet 和 UNet。此外，ControlNet 复制一半的UNet 编码器，从而导致参数数量较大。因此，生成的瓶颈在于 ControlNet 的大小（越大，过程越慢），相比较而言，T2IAdapters体积更小。而且与 ControlNets 不同的是，T2I-Adapters 在整个去噪过程中仅运行一次。但是T2i对于条件语义信息的保持存在问题。</p>
+<ul>
+<li>ControlNet的运行计算成本很高。这是因为在反向扩散过程的每个去噪步骤中，都需要运行 ControlNet 和 UNet。此外，ControlNet 复制一半的UNet 编码器，从而导致参数数量较大。因此，生成的瓶颈在于 ControlNet 的大小（越大，过程越慢），相比较而言，T2IAdapters体积更小。而且与 ControlNets 不同的是，由于忽略了关键的时间编码t，T2I-Adapters 可以在整个去噪过程中仅运行一次。</li>
+<li>ControlNet的计算结果是加在Decoder上的，而T2IAdapter的计算结果是加载Encoder上的。这样设计可能的原因是，ControlNet由于训练数据量更大更完善，所以语义信息更强，不需要再通过UNet的编码器去获取更多的编码特征。</li>
+</ul>
 <table>
 <thead>
 <tr>
@@ -342,6 +358,14 @@ InstantID架构：<br />
                 <div class="post-bottom-tags-and-share border-box">
                     <div>
                         
+                            <ul class="post-tags-box border-box">
+                                
+                                    <li class="tag-item border-box">
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/Stable-Diffusion/">Stable Diffusion</a>
+                                    </li>
+                                
+                            </ul>
+                        
                     </div>
                     <div>
                         
@@ -352,6 +376,22 @@ InstantID架构：<br />
 
                 
                     <div class="post-nav border-box">
+                        
+                            <div class="prev-post">
+                                <a class="prev"
+                                   rel="prev"
+                                   href="/2024/12/10/python-%E5%8F%AF%E5%8F%98%E5%92%8C%E4%B8%8D%E5%8F%AF%E5%8F%98%E5%8F%98%E9%87%8F/"
+                                   title="python 可变和不可变变量"
+                                >
+                                    <span class="left arrow-icon flex-center">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </span>
+                                    <span class="title flex-center">
+                                        <span class="post-nav-title-item text-ellipsis">python 可变和不可变变量</span>
+                                        <span class="post-nav-item">上一篇</span>
+                                    </span>
+                                </a>
+                            </div>
                         
                         
                             <div class="next-post">
