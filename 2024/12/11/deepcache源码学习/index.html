@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="Hexo Theme Keep">
+    <meta name="author" content="frc99">
+    
+    <title>
+        
+            deepcache源码学习 |
+        
+        格物致知
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    
+        <link rel="shortcut icon" href="/images/bige.jpg">
+    
+    
+<link rel="stylesheet" href="/font/css/fontawesome.min.css">
+
+    
+<link rel="stylesheet" href="/font/css/regular.min.css">
+
+    
+<link rel="stylesheet" href="/font/css/solid.min.css">
+
+    
+<link rel="stylesheet" href="/font/css/brands.min.css">
+
+    
+    <script class="keep-theme-configurations">
+    const KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"example.com","root":"/","language":"zh-CN"}
+    KEEP.theme_config = {"base_info":{"primary_color":"#0066cc","title":"格物致知","author":"frc99","avatar":"/images/bige.jpg","logo":"/images/bige.jpg","favicon":"/images/bige.jpg"},"menu":{"home":"/","archives":"/archives","about":"/about"},"first_screen":{"enable":false,"background_img":"/images/bg.svg","background_img_dark":"/images/bg.svg","description":"Keep writing and Keep loving.","hitokoto":false},"social_contact":{"enable":false,"links":{"github":null,"weixin":null,"qq":null,"weibo":null,"zhihu":null,"twitter":null,"x":null,"facebook":null,"email":null}},"scroll":{"progress_bar":false,"percent":false,"hide_header":true},"home":{"announcement":null,"category":false,"tag":false,"post_datetime":"updated"},"post":{"author_badge":{"enable":true,"level_badge":false,"custom_badge":"中本葱"},"word_count":{"wordcount":false,"min2read":false},"datetime_format":"YYYY-MM-DD HH:mm:ss","copyright_info":false,"share":false,"reward":{"enable":false,"img_link":null,"text":null,"icon":null}},"code_block":{"tools":{"enable":true,"style":"default"},"highlight_theme":"default"},"toc":{"enable":false,"number":false,"expand_all":false,"init_open":true,"layout":"right"},"website_count":{"busuanzi_count":{"enable":false,"site_uv":false,"site_pv":false,"page_pv":false}},"local_search":{"enable":false,"preload":false},"comment":{"enable":false,"use":"valine","valine":{"appid":null,"appkey":null,"server_urls":null,"placeholder":null},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null,"proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.39"},"waline":{"server_url":null,"reaction":false,"version":"3.3.2"},"giscus":{"repo":null,"repo_id":null,"category":"Announcements","category_id":null,"reactions_enabled":false},"artalk":{"server":null},"disqus":{"shortname":null}},"rss":{"enable":false},"lazyload":{"enable":false},"cdn":{"enable":false,"provider":"cdnjs"},"pjax":{"enable":false},"footer":{"since":2020,"word_count":false,"site_deploy":{"enable":false,"provider":"github","url":null},"record":{"enable":false,"list":[{"code":null,"link":null}]}},"inject":{"enable":false,"css":[null],"js":[null]},"root":"","source_data":{},"version":"4.2.5"}
+    KEEP.language_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"}
+    KEEP.language_code_block = {"copy":"复制代码","copied":"已复制","fold":"折叠代码块","folded":"已折叠"}
+    KEEP.language_copy_copyright = {"copy":"复制版权信息","copied":"已复制","title":"原文标题","author":"原文作者","link":"原文链接"}
+  </script>
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+
+    
+</div>
+
+
+
+<main class="page-container border-box">
+    <!-- home first screen  -->
+    
+
+    <!-- page content -->
+    <div class="page-main-content border-box">
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="border-box header-content">
+        <div class="left flex-start border-box">
+            
+                <a class="logo-image border-box" href="/">
+                    <img src="/images/bige.jpg">
+                </a>
+            
+            <a class="site-name border-box" href="/">
+               格物致知
+            </a>
+        </div>
+
+        <div class="right border-box">
+            <div class="pc border-box">
+                <ul class="menu-list border-box">
+                    
+                        
+                        <li class="menu-item flex-start border-box">
+                            <a class="menu-text-color border-box" href="/">
+                                
+                                首页
+                                
+                            </a>
+                            
+                        </li>
+                    
+                        
+                        <li class="menu-item flex-start border-box">
+                            <a class="menu-text-color border-box" href="/archives">
+                                
+                                归档
+                                
+                            </a>
+                            
+                        </li>
+                    
+                        
+                        <li class="menu-item flex-start border-box">
+                            <a class="menu-text-color border-box" href="/about">
+                                
+                                关于
+                                
+                            </a>
+                            
+                        </li>
+                    
+                    
+                </ul>
+            </div>
+            <div class="mobile border-box flex-start">
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list border-box">
+            
+                
+                <li class="drawer-menu-item border-box not-sub-menu">
+                    <label class="drawer-menu-label border-box">
+                        <a class="drawer-menu-text-color left-side flex-start border-box" href="/">
+                            
+                            首页
+                        </a>
+                        
+                    </label>
+                    
+                </li>
+            
+                
+                <li class="drawer-menu-item border-box not-sub-menu">
+                    <label class="drawer-menu-label border-box">
+                        <a class="drawer-menu-text-color left-side flex-start border-box" href="/archives">
+                            
+                            归档
+                        </a>
+                        
+                    </label>
+                    
+                </li>
+            
+                
+                <li class="drawer-menu-item border-box not-sub-menu">
+                    <label class="drawer-menu-label border-box">
+                        <a class="drawer-menu-text-color left-side flex-start border-box" href="/about">
+                            
+                            关于
+                        </a>
+                        
+                    </label>
+                    
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle border-box">
+
+            <div class="main-content border-box">
+                
+
+                    
+<div class="fade-in-down-animation">
+    <div class="post-page-container border-box">
+        <div class="post-content-container border-box">
+            
+
+            <div class="post-content-bottom border-box">
+                
+                    <div class="post-title">
+                        deepcache源码学习
+                    </div>
+                
+
+                
+                    <div class="post-header border-box">
+                        
+                            <div class="avatar-box border-box">
+                                <img src="/images/bige.jpg">
+                            </div>
+                        
+                        <div class="info-box">
+                            <div class="author border-box">
+                                <span class="name">frc99</span>
+                                
+                                    <span class="author-badge">中本葱</span>
+                                
+                            </div>
+                            <div class="meta-info border-box">
+                                
+
+<div class="post-meta-info-container border-box post">
+    <div class="post-meta-info border-box">
+        
+
+        
+            <span class="meta-info-item post-create-date">
+                <i class="icon fa-solid fa-calendar-plus"></i>&nbsp;
+                <span class="datetime">2024-12-11 20:49:54</span>
+            </span>
+
+            
+                <span class="meta-info-item post-update-date">
+                    <i class="icon fa-solid fa-file-pen"></i>&nbsp;
+                    <span class="datetime" data-updated="Thu Dec 12 2024 15:27:23 GMT+0800">2024-12-12 15:27:23</span>
+                </span>
+            
+        
+
+        
+
+        
+            <span class="post-tag meta-info-item border-box">
+                <ul class="post-tag-ul">
+                    
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/Stable-Diffusion/">Stable Diffusion</a></li>
+                        
+                    
+                </ul>
+            </span>
+        
+
+        
+        
+        
+        
+    </div>
+
+    
+</div>
+
+                            </div>
+                        </div>
+                    </div>
+                
+
+                <div class="post-content keep-markdown-body ">
+                    
+
+                    
+                         <h2 id="deepcache"><a class="markdownIt-Anchor" href="#deepcache"></a> DeepCache</h2>
+<h3 id="原理"><a class="markdownIt-Anchor" href="#原理"></a> 原理</h3>
+<p>下采样属于浅层特征，上采样属于深层特征，去噪过程中的相邻步骤在浅层特征上表现出显著的时间相似性，即连续步骤之间的变化通常较小。</p>
+<p>从图中可以看出其实现思路，在上采样的倒数第二块的结果作为cache，和上采样第一个块拼接作为输入到下一个timestep的上采样的倒数第一个块。</p>
+<p><img   src="https://s3.bmp.ovh/imgs/2024/12/12/022b4cbf8674b8f0.png"  alt="deepcache" ></p>
+<h3 id="扩展-1n"><a class="markdownIt-Anchor" href="#扩展-1n"></a> 扩展 1:N</h3>
+<p>同一个缓存可以在多个时间步中使用：</p>
+<ul>
+<li>
+<p>均匀： 缓存的特征每计算一次，可以在后续的N−1步中重用，总共完整推理 T/N 次。</p>
+</li>
+<li>
+<p>非均匀：靠近开始和结束距离短，中间距离长。</p>
+</li>
+</ul>
+<p>非均匀的原理是由于特征的相似性并不是在所有步骤中都保持不变，因此可以对那些与相邻步骤相似度相对较小的步骤进行更多采样，</p>
+<p>[<br />
+\mathcal{L} = \left{ l_i \mid l_i \in \text{linear_space}\left((-c)^{\frac{1}{p}}, (T-c)^{\frac{1}{p}}, k\right) \right}<br />
+]</p>
+<p>[<br />
+\mathcal{I} = \text{unique_int}\left(\left{ i_k \mid i_k = (l_k)^p + c, \text{ where } l_k \in \mathcal{L} \right}\right)<br />
+]</p>
+<p><img   src="https://s3.bmp.ovh/imgs/2024/12/12/65cf04a74e1fd1a6.png"  alt="" ></p>
+<h2 id="deepcache-webui-插件源码"><a class="markdownIt-Anchor" href="#deepcache-webui-插件源码"></a> deepcache-webui-插件源码</h2>
+<p>这边是github上aria1th，<a class="link"   target="_blank" rel="noopener" href="https://github.com/aria1th/sd-webui-deepcache-standalone" >https://github.com/aria1th/sd-webui-deepcache-standalone<i class="fas fa-external-link-alt"></i></a></p>
+<p>相似的还有deepcache-forge插件 <a class="link"   target="_blank" rel="noopener" href="https://github.com/LoganBooker/sd-deepcache" >https://github.com/LoganBooker/sd-deepcache<i class="fas fa-external-link-alt"></i></a>.</p>
+<p>作为webui插件，需要hook unet，从hook函数开始看起：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">deepcache_hook_model</span>(<span class="params">self, unet, params:DeepCacheParams</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Hooks the given unet model to use DeepCache.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    caching_level = params.cache_in_level</span><br><span class="line">    <span class="comment"># caching level 0 = no caching, idx for resnet layers</span></span><br><span class="line">    cache_enable_step = params.cache_enable_step</span><br><span class="line">    full_run_step_rate = params.full_run_step_rate <span class="comment"># &#x27;5&#x27; means run full model every 5 steps</span></span><br><span class="line">    <span class="keyword">if</span> full_run_step_rate &lt; <span class="number">1</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;DeepCache disabled due to full_run_step_rate <span class="subst">&#123;full_run_step_rate&#125;</span> &lt; 1 but enabled by user&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="comment"># disabled</span></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">getattr</span>(unet, <span class="string">&#x27;_deepcache_hooked&#x27;</span>, <span class="literal">False</span>):</span><br><span class="line">        <span class="keyword">return</span>  <span class="comment"># already hooked</span></span><br><span class="line">    CACHE_LAST = <span class="variable language_">self</span>.CACHE_LAST</span><br><span class="line">    <span class="comment"># 存一下之前的unet forward</span></span><br><span class="line">    <span class="variable language_">self</span>.stored_forward = unet.forward</span><br><span class="line">    <span class="variable language_">self</span>.enumerated_timestep[<span class="string">&quot;value&quot;</span>] = -<span class="number">1</span></span><br><span class="line">    <span class="comment"># 合法的cache_in_level 不应该大于unet inputblock层数-1</span></span><br><span class="line">    valid_caching_in_level = <span class="built_in">min</span>(caching_level, <span class="built_in">len</span>(unet.input_blocks) - <span class="number">1</span>)</span><br><span class="line">    <span class="comment"># 合法的cache_out_level 不应该大于unet outblock层数-1</span></span><br><span class="line">    valid_caching_out_level = <span class="built_in">min</span>(valid_caching_in_level, <span class="built_in">len</span>(unet.output_blocks) - <span class="number">1</span>)</span><br><span class="line">    <span class="comment"># set to max if invalid</span></span><br><span class="line">    caching_level = valid_caching_out_level</span><br><span class="line">    valid_cache_timestep_range = <span class="number">50</span> <span class="comment"># total 1000, 50</span></span><br><span class="line">    <span class="comment"># 替换forward</span></span><br><span class="line">    unet.forward = hijacked_unet_forward</span><br><span class="line">    <span class="comment"># 标记已经替换</span></span><br><span class="line">    unet._deepcache_hooked = <span class="literal">True</span></span><br><span class="line">    <span class="comment"># 用于卸载detach</span></span><br><span class="line">    <span class="variable language_">self</span>.unet_reference = unet</span><br></pre></td></tr></table></figure>
+<p>重点在于hook的forward：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">hijacked_unet_forward</span>(<span class="params">x, timesteps=<span class="literal">None</span>, context=<span class="literal">None</span>, y=<span class="literal">None</span>, **kwargs</span>):</span><br><span class="line">    cache_cond = <span class="keyword">lambda</span> : <span class="variable language_">self</span>.enumerated_timestep[<span class="string">&quot;value&quot;</span>] % full_run_step_rate == <span class="number">0</span> <span class="keyword">or</span> <span class="variable language_">self</span>.enumerated_timestep[<span class="string">&quot;value&quot;</span>] &gt; cache_enable_step</span><br><span class="line">    use_cache_cond = <span class="keyword">lambda</span> : <span class="variable language_">self</span>.enumerated_timestep[<span class="string">&quot;value&quot;</span>] &gt; cache_enable_step <span class="keyword">and</span> <span class="variable language_">self</span>.enumerated_timestep[<span class="string">&quot;value&quot;</span>] % full_run_step_rate != <span class="number">0</span></span><br><span class="line">    <span class="keyword">nonlocal</span> CACHE_LAST</span><br><span class="line">    <span class="keyword">assert</span> (y <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>) == (</span><br><span class="line">        <span class="built_in">hasattr</span>(unet, <span class="string">&#x27;num_classes&#x27;</span>) <span class="keyword">and</span> unet.num_classes <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span> <span class="comment">#v2 or xl</span></span><br><span class="line">    ), <span class="string">&quot;must specify y if and only if the model is class-conditional&quot;</span></span><br><span class="line">    hs = []</span><br><span class="line">    t_emb = timestep_embedding(timesteps, unet.model_channels, repeat_only=<span class="literal">False</span>).to(devices.dtype_unet)</span><br><span class="line">    emb = unet.time_embed(t_emb)</span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">hasattr</span>(unet, <span class="string">&#x27;num_classes&#x27;</span>) <span class="keyword">and</span> unet.num_classes <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">        <span class="keyword">assert</span> y.shape[<span class="number">0</span>] == x.shape[<span class="number">0</span>]</span><br><span class="line">        emb = emb + unet.label_emb(y)</span><br><span class="line">    real_timestep = timesteps[<span class="number">0</span>].item()</span><br><span class="line">    h = x.<span class="built_in">type</span>(devices.dtype_unet)</span><br><span class="line">    cached_h = get_cache(<span class="variable language_">self</span>.enumerated_timestep[<span class="string">&quot;value&quot;</span>], real_timestep)</span><br><span class="line">    <span class="keyword">for</span> <span class="built_in">id</span>, module <span class="keyword">in</span> <span class="built_in">enumerate</span>(unet.input_blocks):</span><br><span class="line">        <span class="variable language_">self</span>.log_skip(<span class="string">&#x27;run_before_cache_input_block&#x27;</span>)</span><br><span class="line">        h = forward_timestep_embed(module, h, emb, context)</span><br><span class="line">        hs.append(h)</span><br><span class="line">        <span class="keyword">if</span> cached_h <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span> <span class="keyword">and</span> use_cache_cond() <span class="keyword">and</span> <span class="built_in">id</span> == caching_level:</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> use_cache_cond():</span><br><span class="line">        <span class="variable language_">self</span>.log_skip(<span class="string">&#x27;run_before_cache_middle_block&#x27;</span>)</span><br><span class="line">        h = forward_timestep_embed(unet.middle_block, h, emb, context)</span><br><span class="line">    <span class="comment"># 相对cache</span></span><br><span class="line">    relative_cache_level = <span class="built_in">len</span>(unet.output_blocks) - caching_level - <span class="number">1</span></span><br><span class="line">    <span class="comment"># 在outputblock处作cache</span></span><br><span class="line">    <span class="keyword">for</span> idx, module <span class="keyword">in</span> <span class="built_in">enumerate</span>(unet.output_blocks):</span><br><span class="line">        <span class="comment"># cache_h 不是None，且达到相对高度后</span></span><br><span class="line">        <span class="keyword">if</span> cached_h <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span> <span class="keyword">and</span> use_cache_cond() <span class="keyword">and</span> idx == relative_cache_level:</span><br><span class="line">            <span class="comment"># use cache</span></span><br><span class="line">            h = cached_h</span><br><span class="line">        <span class="comment"># cache为None且达到达到相对高度后</span></span><br><span class="line">        <span class="keyword">elif</span> cache_cond() <span class="keyword">and</span> idx == relative_cache_level:</span><br><span class="line">            <span class="comment"># put cache</span></span><br><span class="line">            put_cache(h, <span class="variable language_">self</span>.enumerated_timestep[<span class="string">&quot;value&quot;</span>], real_timestep)</span><br><span class="line">        <span class="keyword">elif</span> cached_h <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span> <span class="keyword">and</span> use_cache_cond() <span class="keyword">and</span> idx &lt; relative_cache_level:</span><br><span class="line">            <span class="comment"># skip, h is already cached</span></span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line">        hsp = hs.pop()</span><br><span class="line">        <span class="comment"># 跳跃连接拼接作为输入</span></span><br><span class="line">        h = torch.cat([h, hsp], dim=<span class="number">1</span>)</span><br><span class="line">        <span class="keyword">del</span> hsp</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(hs) &gt; <span class="number">0</span>:</span><br><span class="line">            output_shape = hs[-<span class="number">1</span>].shape</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            output_shape = <span class="literal">None</span></span><br><span class="line">        h = forward_timestep_embed(module, h, emb, context, output_shape=output_shape)</span><br><span class="line">    h = h.<span class="built_in">type</span>(x.dtype)</span><br><span class="line">    <span class="comment"># enumerated_timestep？</span></span><br><span class="line">    <span class="variable language_">self</span>.enumerated_timestep[<span class="string">&quot;value&quot;</span>] += <span class="number">1</span></span><br><span class="line">    <span class="keyword">if</span> unet.predict_codebook_ids:</span><br><span class="line">        <span class="keyword">return</span> unet.id_predictor(h)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">return</span> unet.out(h)</span><br></pre></td></tr></table></figure>
+<p>卸载detach</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">detach</span>(<span class="params">self</span>):</span><br><span class="line">    <span class="keyword">if</span> <span class="variable language_">self</span>.unet_reference <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> <span class="built_in">getattr</span>(<span class="variable language_">self</span>.unet_reference, <span class="string">&#x27;_deepcache_hooked&#x27;</span>, <span class="literal">False</span>):</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    <span class="comment"># detach</span></span><br><span class="line">    <span class="variable language_">self</span>.unet_reference.forward = <span class="variable language_">self</span>.stored_forward</span><br><span class="line">    <span class="variable language_">self</span>.unet_reference._deepcache_hooked = <span class="literal">False</span></span><br><span class="line">    <span class="variable language_">self</span>.unet_reference = <span class="literal">None</span></span><br><span class="line">    <span class="variable language_">self</span>.stored_forward = <span class="literal">None</span></span><br><span class="line">    <span class="variable language_">self</span>.CACHE_LAST.clear()</span><br><span class="line">    <span class="variable language_">self</span>.cache_fail_count = <span class="variable language_">self</span>.cache_success_count = <span class="number">0</span><span class="comment">#</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+                    
+                </div>
+
+                
+
+                <div class="post-bottom-tags-and-share border-box">
+                    <div>
+                        
+                            <ul class="post-tags-box border-box">
+                                
+                                    <li class="tag-item border-box">
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/Stable-Diffusion/">Stable Diffusion</a>
+                                    </li>
+                                
+                            </ul>
+                        
+                    </div>
+                    <div>
+                        
+                    </div>
+                </div>
+
+                
+
+                
+                    <div class="post-nav border-box">
+                        
+                        
+                            <div class="next-post">
+                                <a class="next"
+                                   rel="next"
+                                   href="/2024/12/10/python-%E5%8F%AF%E5%8F%98%E5%92%8C%E4%B8%8D%E5%8F%AF%E5%8F%98%E5%8F%98%E9%87%8F/"
+                                   title="python 可变和不可变变量"
+                                >
+                                    <span class="title flex-center">
+                                        <span class="post-nav-title-item text-ellipsis">python 可变和不可变变量</span>
+                                        <span class="post-nav-item">下一篇</span>
+                                    </span>
+                                    <span class="right arrow-icon flex-center">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </span>
+                                </a>
+                            </div>
+                        
+                    </div>
+                
+
+                
+                    
+
+
+
+
+
+
+                
+            </div>
+        </div>
+
+        
+    </div>
+</div>
+
+
+                
+            </div>
+        </div>
+
+        <div class="page-main-content-bottom border-box">
+            
+<footer class="footer border-box">
+    <div class="copyright-info info-item">
+    &copy;&nbsp;<span>2020</span>&nbsp;-&nbsp;2024
+    
+            &nbsp;<i class="fas fa-heart icon-animate"></i>&nbsp;&nbsp;<a href="/">frc99</a>
+        
+    </div>
+
+    <div class="theme-info info-item">
+        由&nbsp;<a target="_blank" href="https://hexo.io">Hexo</a>&nbsp;驱动&nbsp;&&nbsp;主题&nbsp;<a class="keep-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep</a>
+    </div>
+
+    
+
+    
+
+    
+</footer>
+
+        </div>
+    </div>
+
+    <!-- post tools -->
+    
+        <div class="post-tools right-toc">
+            <div class="post-tools-container border-box">
+    <ul class="post-tools-list border-box">
+        <!-- PC encrypt again -->
+        
+
+        <!-- PC TOC show toggle -->
+        
+
+        <!-- PC go comment -->
+        
+
+        <!-- PC full screen -->
+        <li class="tools-item flex-center full-screen">
+            <i class="fa-solid fa-expand"></i>
+        </li>
+    </ul>
+</div>
+
+        </div>
+    
+
+    <!-- side tools -->
+    <div class="side-tools">
+        <div class="side-tools-container border-box ">
+    <ul class="side-tools-list side-tools-show-handle border-box">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <!-- toggle mode -->
+        
+            <li class="tools-item tool-toggle-theme-mode flex-center">
+                <i class="fas fa-moon"></i>
+            </li>
+        
+
+        <!-- rss -->
+        
+
+        <!-- to bottom -->
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list border-box">
+        
+
+        
+
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+
+        <li class="tools-item tool-scroll-to-top flex-center show-arrow">
+            <i class="arrow fas fa-arrow-up"></i>
+            <span class="percent"></span>
+        </li>
+    </ul>
+</div>
+
+    </div>
+
+    <!-- image mask -->
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    <!-- local search -->
+    
+
+    <!-- tablet toc -->
+    
+</main>
+
+
+
+
+
+<!-- common js -->
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/header-shrink.js"></script>
+
+<script src="/js/back2top.js"></script>
+
+<script src="/js/toggle-theme.js"></script>
+
+<script src="/js/code-block.js"></script>
+
+<script src="/js/main.js"></script>
+
+<script src="/js/libs/anime.min.js"></script>
+
+
+<!-- local search -->
+
+
+<!-- lazyload -->
+
+
+<div class="">
+    <!-- home page -->
+    
+
+    <!-- post page -->
+    
+        <!-- post-helper -->
+        
+<script src="/js/post/post-helper.js"></script>
+
+
+        <!-- toc -->
+        
+
+        <!-- copyright-info -->
+        
+
+        <!-- share -->
+        
+    
+
+    <!-- categories page -->
+    
+
+    <!-- links page -->
+    
+
+    <!-- photos page -->
+    
+
+    <!-- tools page -->
+    
+</div>
+
+<!-- mermaid -->
+
+
+<!-- pjax -->
+
+
+
+</body>
+</html>
