@@ -9,7 +9,7 @@
     
     <title>
         
-            标签: Stable Diffusion |
+            prefill和decode |
         
         格物致知
     </title>
@@ -174,47 +174,160 @@
             <div class="main-content border-box">
                 
 
-                    <div class="fade-in-down-animation">
-    <div class="tag-archive-container border-box">
-        <div class="tag-name"><i class="fas fa-hashtag"></i>&nbsp;Stable Diffusion
-        </div>
-        <div class="tag-post-list">
+                    
+<div class="fade-in-down-animation">
+    <div class="post-page-container border-box">
+        <div class="post-content-container border-box">
             
-<div class="archive-list-container border-box">
-    
-        <section class="archive-item border-box">
-            <div class="archive-item-header border-box">
-                <span class="archive-year">2024</span>
-            </div>
-            <ul class="archive-item-body border-box">
+
+            <div class="post-content-bottom border-box">
                 
-                    <li class="post-item border-box">
-                        <span class="starting-point border-box flex-center"></span>
-                        <span class="post-date border-box">12-11</span>
-                        <a class="post-title border-box text-ellipsis"
-                           href="/2024/12/11/deepcache%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/"
-                        >deepcache学习笔记</a>
-                    </li>
+                    <div class="post-title">
+                        prefill和decode
+                    </div>
                 
-                    <li class="post-item border-box">
-                        <span class="starting-point border-box flex-center"></span>
-                        <span class="post-date border-box">12-05</span>
-                        <a class="post-title border-box text-ellipsis"
-                           href="/2024/12/05/%E7%94%9F%E5%9B%BE%E6%9D%A1%E4%BB%B6%E6%8E%A7%E5%88%B6%E7%AE%97%E6%B3%95/"
-                        >生图条件控制算法</a>
-                    </li>
+
                 
-            </ul>
-        </section>
+                    <div class="post-header border-box">
+                        
+                            <div class="avatar-box border-box">
+                                <img src="/images/bige.jpg">
+                            </div>
+                        
+                        <div class="info-box">
+                            <div class="author border-box">
+                                <span class="name">frc99</span>
+                                
+                                    <span class="author-badge">中本葱</span>
+                                
+                            </div>
+                            <div class="meta-info border-box">
+                                
+
+<div class="post-meta-info-container border-box post">
+    <div class="post-meta-info border-box">
+        
+
+        
+            <span class="meta-info-item post-create-date">
+                <i class="icon fa-solid fa-calendar-plus"></i>&nbsp;
+                <span class="datetime">2025-01-02 14:32:13</span>
+            </span>
+
+            
+                <span class="meta-info-item post-update-date">
+                    <i class="icon fa-solid fa-file-pen"></i>&nbsp;
+                    <span class="datetime" data-updated="Thu Jan 02 2025 15:36:02 GMT+0800">2025-01-02 15:36:02</span>
+                </span>
+            
+        
+
+        
+
+        
+            <span class="post-tag meta-info-item border-box">
+                <ul class="post-tag-ul">
+                    
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/LLM/">LLM</a></li>
+                        
+                    
+                </ul>
+            </span>
+        
+
+        
+        
+        
+        
+    </div>
+
     
 </div>
 
+                            </div>
+                        </div>
+                    </div>
+                
+
+                <div class="post-content keep-markdown-body ">
+                    
+
+                    
+                         <h3 id="overview"><a class="markdownIt-Anchor" href="#overview"></a> Overview</h3>
+<p>prefill阶段：对输入的 prompts 进行处理</p>
+<p>decode阶段：利用自回归的方式来生成 tokens</p>
+<p>一个请求会经过一次prefill，和多次decode，每生成一个token就进行一次decode。<br />
+<img   src="https://s3.bmp.ovh/imgs/2025/01/02/7ea149f3e06feb44.png"  alt="" ></p>
+<p>prefill是计算密集型的，由于涉及自注意力等大型矩阵计算；decode是IO密集型的，每次仅处理一个token，但需要频繁读取KV cache。<br />
+<img   src="https://s3.bmp.ovh/imgs/2025/01/02/6f52a7f722cbb3a4.png"  alt="" ></p>
+<h4 id="prefill的输入"><a class="markdownIt-Anchor" href="#prefill的输入"></a> prefill的输入</h4>
+<p>prefill输入是一个[B,L,H]，其中B是Batch Size，指的是请求的数量；L是Length，指的是输入prompt的长度，H是embeding的维度。<br />
+<img   src="https://s3.bmp.ovh/imgs/2025/01/02/d9dbfc0adf6ac90f.png"  alt="" ></p>
+<h4 id="decode的输入"><a class="markdownIt-Anchor" href="#decode的输入"></a> decode的输入</h4>
+<p>decode的输入是[B,1,H],由于decode输入是上一个输出的 token，因此L是1<br />
+<img   src="https://s3.bmp.ovh/imgs/2025/01/02/f73b72fe6250e4a4.png"  alt="" ></p>
+
+                    
+                </div>
+
+                
+
+                <div class="post-bottom-tags-and-share border-box">
+                    <div>
+                        
+                            <ul class="post-tags-box border-box">
+                                
+                                    <li class="tag-item border-box">
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/LLM/">LLM</a>
+                                    </li>
+                                
+                            </ul>
+                        
+                    </div>
+                    <div>
+                        
+                    </div>
+                </div>
+
+                
+
+                
+                    <div class="post-nav border-box">
+                        
+                        
+                            <div class="next-post">
+                                <a class="next"
+                                   rel="next"
+                                   href="/2024/12/11/deepcache%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/"
+                                   title="deepcache学习笔记"
+                                >
+                                    <span class="title flex-center">
+                                        <span class="post-nav-title-item text-ellipsis">deepcache学习笔记</span>
+                                        <span class="post-nav-item">下一篇</span>
+                                    </span>
+                                    <span class="right arrow-icon flex-center">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </span>
+                                </a>
+                            </div>
+                        
+                    </div>
+                
+
+                
+                    
+
+
+
+
+
+
+                
+            </div>
         </div>
+
+        
     </div>
-    
-
-
-
 </div>
 
 
@@ -247,6 +360,27 @@
     </div>
 
     <!-- post tools -->
+    
+        <div class="post-tools right-toc">
+            <div class="post-tools-container border-box">
+    <ul class="post-tools-list border-box">
+        <!-- PC encrypt again -->
+        
+
+        <!-- PC TOC show toggle -->
+        
+
+        <!-- PC go comment -->
+        
+
+        <!-- PC full screen -->
+        <li class="tools-item flex-center full-screen">
+            <i class="fa-solid fa-expand"></i>
+        </li>
+    </ul>
+</div>
+
+        </div>
     
 
     <!-- side tools -->
@@ -312,7 +446,6 @@
 
 
 
-
 <!-- common js -->
 
 <script src="/js/utils.js"></script>
@@ -341,6 +474,20 @@
     
 
     <!-- post page -->
+    
+        <!-- post-helper -->
+        
+<script src="/js/post/post-helper.js"></script>
+
+
+        <!-- toc -->
+        
+
+        <!-- copyright-info -->
+        
+
+        <!-- share -->
+        
     
 
     <!-- categories page -->
