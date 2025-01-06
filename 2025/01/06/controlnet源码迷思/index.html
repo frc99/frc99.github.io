@@ -9,7 +9,7 @@
     
     <title>
         
-            prefill和decode |
+            controlnet源码一点小迷思 |
         
         格物致知
     </title>
@@ -183,7 +183,7 @@
             <div class="post-content-bottom border-box">
                 
                     <div class="post-title">
-                        prefill和decode
+                        controlnet源码一点小迷思
                     </div>
                 
 
@@ -211,13 +211,13 @@
         
             <span class="meta-info-item post-create-date">
                 <i class="icon fa-solid fa-calendar-plus"></i>&nbsp;
-                <span class="datetime">2025-01-02 14:32:13</span>
+                <span class="datetime">2025-01-06 15:22:06</span>
             </span>
 
             
                 <span class="meta-info-item post-update-date">
                     <i class="icon fa-solid fa-file-pen"></i>&nbsp;
-                    <span class="datetime" data-updated="Thu Jan 02 2025 15:36:02 GMT+0800">2025-01-02 15:36:02</span>
+                    <span class="datetime" data-updated="Mon Jan 06 2025 15:40:00 GMT+0800">2025-01-06 15:40:00</span>
                 </span>
             
         
@@ -228,7 +228,7 @@
             <span class="post-tag meta-info-item border-box">
                 <ul class="post-tag-ul">
                     
-                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/LLM/">LLM</a></li>
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/Stable-Diffusion/">Stable Diffusion</a></li>
                         
                     
                 </ul>
@@ -253,19 +253,13 @@
                     
 
                     
-                         <h3 id="overview"><a class="markdownIt-Anchor" href="#overview"></a> Overview</h3>
-<p>prefill阶段：对输入的 prompts 进行处理</p>
-<p>decode阶段：利用自回归的方式来生成 tokens</p>
-<p>一个请求会经过一次prefill，和多次decode，每生成一个token就进行一次decode。<br />
-<img   src="https://s3.bmp.ovh/imgs/2025/01/02/7ea149f3e06feb44.png"  alt="" ></p>
-<p>prefill是计算密集型的，由于涉及自注意力等大型矩阵计算；decode是IO密集型的，每次仅处理一个token，但需要频繁读取KV cache。<br />
-<img   src="https://s3.bmp.ovh/imgs/2025/01/02/6f52a7f722cbb3a4.png"  alt="" ></p>
-<h4 id="prefill的输入"><a class="markdownIt-Anchor" href="#prefill的输入"></a> prefill的输入</h4>
-<p>prefill输入是一个[B,L,H]，其中B是Batch Size，指的是请求的数量；L是Length，指的是输入prompt的长度，H是embeding的维度。<br />
-<img   src="https://s3.bmp.ovh/imgs/2025/01/02/d9dbfc0adf6ac90f.png"  alt="" ></p>
-<h4 id="decode的输入"><a class="markdownIt-Anchor" href="#decode的输入"></a> decode的输入</h4>
-<p>decode的输入是[B,1,H],由于decode输入是上一个输出的 token，因此L是1<br />
-<img   src="https://s3.bmp.ovh/imgs/2025/01/02/f73b72fe6250e4a4.png"  alt="" ></p>
+                         <h3 id="迷之思考1-control相加位置"><a class="markdownIt-Anchor" href="#迷之思考1-control相加位置"></a> 迷之思考1 control相加位置</h3>
+<p><img   src="https://s3.bmp.ovh/imgs/2024/12/05/a34290573e2e8069.png"  alt="ControlNet" ><br />
+在论文以及webui实现中，controlnet的输出都是相加在upblock和midblock的输入位置，然而在diffusers的实现中,在运算完downblock后，将down_block_additional_residuals加在了downblock的输出位置，虽然作用一致，但给我带了理解上的迷惑。<br />
+以下是<a class="link"   target="_blank" rel="noopener" href="https://github.com/huggingface/diffusers/blob/v0.27.2/src/diffusers/pipelines/controlnet/pipeline_controlnet.py#L1252" >https://github.com/huggingface/diffusers/blob/v0.27.2/src/diffusers/pipelines/controlnet/pipeline_controlnet.py#L1252<i class="fas fa-external-link-alt"></i></a></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">down_block_res_samples, mid_block_res_sample = <span class="variable language_">self</span>.controlnet(</span><br><span class="line">    control_model_input,</span><br><span class="line">    t,</span><br><span class="line">    encoder_hidden_states=controlnet_prompt_embeds,</span><br><span class="line">    controlnet_cond=image,</span><br><span class="line">    conditioning_scale=cond_scale,</span><br><span class="line">    guess_mode=guess_mode,</span><br><span class="line">    return_dict=<span class="literal">False</span>,</span><br><span class="line">)</span><br><span class="line"><span class="comment"># predict the noise residual</span></span><br><span class="line">noise_pred = <span class="variable language_">self</span>.unet(</span><br><span class="line">    latent_model_input,</span><br><span class="line">    t,</span><br><span class="line">    encoder_hidden_states=prompt_embeds,</span><br><span class="line">    timestep_cond=timestep_cond,</span><br><span class="line">    cross_attention_kwargs=<span class="variable language_">self</span>.cross_attention_kwargs,</span><br><span class="line">    down_block_additional_residuals=down_block_res_samples,</span><br><span class="line">    mid_block_additional_residual=mid_block_res_sample,</span><br><span class="line">    added_cond_kwargs=added_cond_kwargs,</span><br><span class="line">    return_dict=<span class="literal">False</span>,</span><br><span class="line">)[<span class="number">0</span>]</span><br></pre></td></tr></table></figure>
+<p>以下是<a class="link"   target="_blank" rel="noopener" href="https://github.com/huggingface/diffusers/blob/main/src/diffusers/models/unets/unet_2d_condition.py#L1208" >https://github.com/huggingface/diffusers/blob/main/src/diffusers/models/unets/unet_2d_condition.py#L1208<i class="fas fa-external-link-alt"></i></a></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># downblock</span></span><br><span class="line">    down_block_res_samples = (sample,)</span><br><span class="line">    <span class="keyword">for</span> downsample_block <span class="keyword">in</span> <span class="variable language_">self</span>.down_blocks:</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">hasattr</span>(downsample_block, <span class="string">&quot;has_cross_attention&quot;</span>) <span class="keyword">and</span> downsample_block.has_cross_attention:</span><br><span class="line">            <span class="comment"># For t2i-adapter CrossAttnDownBlock2D</span></span><br><span class="line">            additional_residuals = &#123;&#125;</span><br><span class="line">            <span class="keyword">if</span> is_adapter <span class="keyword">and</span> <span class="built_in">len</span>(down_intrablock_additional_residuals) &gt; <span class="number">0</span>:</span><br><span class="line">                additional_residuals[<span class="string">&quot;additional_residuals&quot;</span>] = down_intrablock_additional_residuals.pop(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">            sample, res_samples = downsample_block(</span><br><span class="line">                hidden_states=sample,</span><br><span class="line">                temb=emb,</span><br><span class="line">                encoder_hidden_states=encoder_hidden_states,</span><br><span class="line">                attention_mask=attention_mask,</span><br><span class="line">                cross_attention_kwargs=cross_attention_kwargs,</span><br><span class="line">                encoder_attention_mask=encoder_attention_mask,</span><br><span class="line">                **additional_residuals,</span><br><span class="line">            )</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            sample, res_samples = downsample_block(hidden_states=sample, temb=emb)</span><br><span class="line">            <span class="keyword">if</span> is_adapter <span class="keyword">and</span> <span class="built_in">len</span>(down_intrablock_additional_residuals) &gt; <span class="number">0</span>:</span><br><span class="line">                sample += down_intrablock_additional_residuals.pop(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">        down_block_res_samples += res_samples</span><br><span class="line">    <span class="comment"># 运算完downblock后</span></span><br><span class="line">    <span class="keyword">if</span> is_controlnet:</span><br><span class="line">        new_down_block_res_samples = ()</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> down_block_res_sample, down_block_additional_residual <span class="keyword">in</span> <span class="built_in">zip</span>(</span><br><span class="line">            down_block_res_samples, down_block_additional_residuals</span><br><span class="line">        ):</span><br><span class="line">            <span class="comment"># 此处做了相加</span></span><br><span class="line">            down_block_res_sample = down_block_res_sample + down_block_additional_residual</span><br><span class="line">            new_down_block_res_samples = new_down_block_res_samples + (down_block_res_sample,)</span><br><span class="line"></span><br><span class="line">        down_block_res_samples = new_down_block_res_samples</span><br></pre></td></tr></table></figure>
 
                     
                 </div>
@@ -278,7 +272,7 @@
                             <ul class="post-tags-box border-box">
                                 
                                     <li class="tag-item border-box">
-                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/LLM/">LLM</a>
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/Stable-Diffusion/">Stable Diffusion</a>
                                     </li>
                                 
                             </ul>
@@ -294,31 +288,15 @@
                 
                     <div class="post-nav border-box">
                         
-                            <div class="prev-post">
-                                <a class="prev"
-                                   rel="prev"
-                                   href="/2025/01/06/controlnet%E6%BA%90%E7%A0%81%E8%BF%B7%E6%80%9D/"
-                                   title="controlnet源码一点小迷思"
-                                >
-                                    <span class="left arrow-icon flex-center">
-                                        <i class="fas fa-chevron-left"></i>
-                                    </span>
-                                    <span class="title flex-center">
-                                        <span class="post-nav-title-item text-ellipsis">controlnet源码一点小迷思</span>
-                                        <span class="post-nav-item">上一篇</span>
-                                    </span>
-                                </a>
-                            </div>
-                        
                         
                             <div class="next-post">
                                 <a class="next"
                                    rel="next"
-                                   href="/2024/12/11/deepcache%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/"
-                                   title="deepcache学习笔记"
+                                   href="/2025/01/02/prefill%E5%92%8Cdecode/"
+                                   title="prefill和decode"
                                 >
                                     <span class="title flex-center">
-                                        <span class="post-nav-title-item text-ellipsis">deepcache学习笔记</span>
+                                        <span class="post-nav-title-item text-ellipsis">prefill和decode</span>
                                         <span class="post-nav-item">下一篇</span>
                                     </span>
                                     <span class="right arrow-icon flex-center">
