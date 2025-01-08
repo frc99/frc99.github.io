@@ -217,7 +217,7 @@
             
                 <span class="meta-info-item post-update-date">
                     <i class="icon fa-solid fa-file-pen"></i>&nbsp;
-                    <span class="datetime" data-updated="Thu Dec 12 2024 16:10:37 GMT+0800">2024-12-12 16:10:37</span>
+                    <span class="datetime" data-updated="Wed Jan 08 2025 15:45:11 GMT+0800">2025-01-08 15:45:11</span>
                 </span>
             
         
@@ -255,7 +255,7 @@
                     
                          <h2 id="deepcache"><a class="markdownIt-Anchor" href="#deepcache"></a> DeepCache</h2>
 <h3 id="原理"><a class="markdownIt-Anchor" href="#原理"></a> 原理</h3>
-<p>下采样属于浅层特征，上采样属于深层特征，去噪过程中的相邻步骤在浅层特征上表现出显著的时间相似性，即连续步骤之间的变化通常较小。</p>
+<p>下采样属于浅层特征，上采样属于深层特征，去噪过程中的相邻步骤在深层特征上表现出显著的时间相似性，即连续步骤之间的变化通常较小。</p>
 <p>从图中可以看出其实现思路，在上采样的倒数第二块的结果作为cache，和上采样第一个块拼接作为输入到下一个timestep的上采样的倒数第一个块。</p>
 <p><img   src="https://s3.bmp.ovh/imgs/2024/12/12/022b4cbf8674b8f0.png"  alt="deepcache" ></p>
 <h3 id="扩展-1n"><a class="markdownIt-Anchor" href="#扩展-1n"></a> 扩展 1:N</h3>
