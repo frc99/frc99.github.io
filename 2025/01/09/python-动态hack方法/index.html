@@ -9,7 +9,7 @@
     
     <title>
         
-            controlnet源码一点小迷思 |
+            python 动态hack方法 |
         
         格物致知
     </title>
@@ -183,7 +183,7 @@
             <div class="post-content-bottom border-box">
                 
                     <div class="post-title">
-                        controlnet源码一点小迷思
+                        python 动态hack方法
                     </div>
                 
 
@@ -211,13 +211,13 @@
         
             <span class="meta-info-item post-create-date">
                 <i class="icon fa-solid fa-calendar-plus"></i>&nbsp;
-                <span class="datetime">2025-01-06 15:22:06</span>
+                <span class="datetime">2025-01-09 14:23:36</span>
             </span>
 
             
                 <span class="meta-info-item post-update-date">
                     <i class="icon fa-solid fa-file-pen"></i>&nbsp;
-                    <span class="datetime" data-updated="Mon Jan 06 2025 15:40:00 GMT+0800">2025-01-06 15:40:00</span>
+                    <span class="datetime" data-updated="Thu Jan 09 2025 14:33:46 GMT+0800">2025-01-09 14:33:46</span>
                 </span>
             
         
@@ -228,7 +228,7 @@
             <span class="post-tag meta-info-item border-box">
                 <ul class="post-tag-ul">
                     
-                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/Stable-Diffusion/">Stable Diffusion</a></li>
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/Python/">Python</a></li>
                         
                     
                 </ul>
@@ -253,14 +253,14 @@
                     
 
                     
-                         <h3 id="迷之思考1-control相加位置"><a class="markdownIt-Anchor" href="#迷之思考1-control相加位置"></a> 迷之思考1 control相加位置</h3>
-<p><img   src="https://s3.bmp.ovh/imgs/2024/12/05/a34290573e2e8069.png"  alt="ControlNet" ><br />
-在论文以及webui实现中，controlnet的输出都是相加在upblock和midblock的输入位置，然而在diffusers的实现中,在运算完downblock后，将down_block_additional_residuals加在了downblock的输出位置，虽然作用一致，但给我带了理解上的迷惑。<br />
-以下是<a class="link"   target="_blank" rel="noopener" href="https://github.com/huggingface/diffusers/blob/v0.27.2/src/diffusers/pipelines/controlnet/pipeline_controlnet.py#L1252" >https://github.com/huggingface/diffusers/blob/v0.27.2/src/diffusers/pipelines/controlnet/pipeline_controlnet.py#L1252<i class="fas fa-external-link-alt"></i></a></p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">down_block_res_samples, mid_block_res_sample = <span class="variable language_">self</span>.controlnet(</span><br><span class="line">    control_model_input,</span><br><span class="line">    t,</span><br><span class="line">    encoder_hidden_states=controlnet_prompt_embeds,</span><br><span class="line">    controlnet_cond=image,</span><br><span class="line">    conditioning_scale=cond_scale,</span><br><span class="line">    guess_mode=guess_mode,</span><br><span class="line">    return_dict=<span class="literal">False</span>,</span><br><span class="line">)</span><br><span class="line"><span class="comment"># predict the noise residual</span></span><br><span class="line">noise_pred = <span class="variable language_">self</span>.unet(</span><br><span class="line">    latent_model_input,</span><br><span class="line">    t,</span><br><span class="line">    encoder_hidden_states=prompt_embeds,</span><br><span class="line">    timestep_cond=timestep_cond,</span><br><span class="line">    cross_attention_kwargs=<span class="variable language_">self</span>.cross_attention_kwargs,</span><br><span class="line">    down_block_additional_residuals=down_block_res_samples,</span><br><span class="line">    mid_block_additional_residual=mid_block_res_sample,</span><br><span class="line">    added_cond_kwargs=added_cond_kwargs,</span><br><span class="line">    return_dict=<span class="literal">False</span>,</span><br><span class="line">)[<span class="number">0</span>]</span><br></pre></td></tr></table></figure>
-<p>以下是<a class="link"   target="_blank" rel="noopener" href="https://github.com/huggingface/diffusers/blob/main/src/diffusers/models/unets/unet_2d_condition.py#L1208" >https://github.com/huggingface/diffusers/blob/main/src/diffusers/models/unets/unet_2d_condition.py#L1208<i class="fas fa-external-link-alt"></i></a></p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># downblock</span></span><br><span class="line">    down_block_res_samples = (sample,)</span><br><span class="line">    <span class="keyword">for</span> downsample_block <span class="keyword">in</span> <span class="variable language_">self</span>.down_blocks:</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">hasattr</span>(downsample_block, <span class="string">&quot;has_cross_attention&quot;</span>) <span class="keyword">and</span> downsample_block.has_cross_attention:</span><br><span class="line">            <span class="comment"># For t2i-adapter CrossAttnDownBlock2D</span></span><br><span class="line">            additional_residuals = &#123;&#125;</span><br><span class="line">            <span class="keyword">if</span> is_adapter <span class="keyword">and</span> <span class="built_in">len</span>(down_intrablock_additional_residuals) &gt; <span class="number">0</span>:</span><br><span class="line">                additional_residuals[<span class="string">&quot;additional_residuals&quot;</span>] = down_intrablock_additional_residuals.pop(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">            sample, res_samples = downsample_block(</span><br><span class="line">                hidden_states=sample,</span><br><span class="line">                temb=emb,</span><br><span class="line">                encoder_hidden_states=encoder_hidden_states,</span><br><span class="line">                attention_mask=attention_mask,</span><br><span class="line">                cross_attention_kwargs=cross_attention_kwargs,</span><br><span class="line">                encoder_attention_mask=encoder_attention_mask,</span><br><span class="line">                **additional_residuals,</span><br><span class="line">            )</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            sample, res_samples = downsample_block(hidden_states=sample, temb=emb)</span><br><span class="line">            <span class="keyword">if</span> is_adapter <span class="keyword">and</span> <span class="built_in">len</span>(down_intrablock_additional_residuals) &gt; <span class="number">0</span>:</span><br><span class="line">                sample += down_intrablock_additional_residuals.pop(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">        down_block_res_samples += res_samples</span><br><span class="line">    <span class="comment"># 运算完downblock后</span></span><br><span class="line">    <span class="keyword">if</span> is_controlnet:</span><br><span class="line">        new_down_block_res_samples = ()</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> down_block_res_sample, down_block_additional_residual <span class="keyword">in</span> <span class="built_in">zip</span>(</span><br><span class="line">            down_block_res_samples, down_block_additional_residuals</span><br><span class="line">        ):</span><br><span class="line">            <span class="comment"># 此处做了相加</span></span><br><span class="line">            down_block_res_sample = down_block_res_sample + down_block_additional_residual</span><br><span class="line">            new_down_block_res_samples = new_down_block_res_samples + (down_block_res_sample,)</span><br><span class="line"></span><br><span class="line">        down_block_res_samples = new_down_block_res_samples</span><br></pre></td></tr></table></figure>
-
+                         <p>由于很多时候需要hack forward函数，修改其中的逻辑，目前学习到的有两种修改实例的方法，之后还会有补充。</p>
+<h3 id="__get__"><a class="markdownIt-Anchor" href="#__get__"></a> <code>__get__</code></h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">OriginalClass</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">original_function</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;这是原始函数的执行内容&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">hijacked_function</span>(<span class="params">self</span>):</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;这是被劫持替换后的函数执行内容&quot;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    original_obj = OriginalClass()</span><br><span class="line">    <span class="comment"># 获取原始函数对象</span></span><br><span class="line">    original_main_entry = original_obj.original_function</span><br><span class="line">    <span class="comment"># 模拟劫持替换</span></span><br><span class="line">    original_obj.original_function = hijacked_function.__get__(original_obj)</span><br><span class="line">    <span class="comment"># 调用被替换后的函数</span></span><br><span class="line">    original_obj.original_function()</span><br><span class="line">    <span class="comment"># 可以验证一下原始函数的绑定情况</span></span><br><span class="line">    another_obj = OriginalClass()</span><br><span class="line">    another_obj.original_function()</span><br></pre></td></tr></table></figure>
+<h3 id="typesmethodtype"><a class="markdownIt-Anchor" href="#typesmethodtype"></a> <code>types.MethodType</code></h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> types</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MyClass</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">original_method</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;执行原始方法&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">new_method</span>(<span class="params">self</span>):</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;执行替换后的方法&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    obj = MyClass()</span><br><span class="line">    obj.original_method = types.MethodType(new_method, obj)</span><br><span class="line">    obj.original_method()</span><br></pre></td></tr></table></figure>
+<h3 id="题外话pytoch-hack"><a class="markdownIt-Anchor" href="#题外话pytoch-hack"></a> 题外话：pytoch hack</h3>
+<p>pytorch支持导出、修改Module中间变量</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">torch.Tensor.register_hook()</span><br><span class="line">torch.nn.Module.register_forward_hook()</span><br><span class="line">torch.nn.Module.register_backward_hook()</span><br><span class="line">torch.nn.Module.register_forward_pre_hook()</span><br></pre></td></tr></table></figure>
                     
                 </div>
 
@@ -272,7 +272,7 @@
                             <ul class="post-tags-box border-box">
                                 
                                     <li class="tag-item border-box">
-                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/Stable-Diffusion/">Stable Diffusion</a>
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/Python/">Python</a>
                                     </li>
                                 
                             </ul>
@@ -288,31 +288,15 @@
                 
                     <div class="post-nav border-box">
                         
-                            <div class="prev-post">
-                                <a class="prev"
-                                   rel="prev"
-                                   href="/2025/01/09/python-%E5%8A%A8%E6%80%81hack%E6%96%B9%E6%B3%95/"
-                                   title="python 动态hack方法"
-                                >
-                                    <span class="left arrow-icon flex-center">
-                                        <i class="fas fa-chevron-left"></i>
-                                    </span>
-                                    <span class="title flex-center">
-                                        <span class="post-nav-title-item text-ellipsis">python 动态hack方法</span>
-                                        <span class="post-nav-item">上一篇</span>
-                                    </span>
-                                </a>
-                            </div>
-                        
                         
                             <div class="next-post">
                                 <a class="next"
                                    rel="next"
-                                   href="/2025/01/02/prefill%E5%92%8Cdecode/"
-                                   title="prefill和decode"
+                                   href="/2025/01/06/controlnet%E6%BA%90%E7%A0%81%E8%BF%B7%E6%80%9D/"
+                                   title="controlnet源码一点小迷思"
                                 >
                                     <span class="title flex-center">
-                                        <span class="post-nav-title-item text-ellipsis">prefill和decode</span>
+                                        <span class="post-nav-title-item text-ellipsis">controlnet源码一点小迷思</span>
                                         <span class="post-nav-item">下一篇</span>
                                     </span>
                                     <span class="right arrow-icon flex-center">
