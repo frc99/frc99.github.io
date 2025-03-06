@@ -9,7 +9,7 @@
     
     <title>
         
-            关于 |
+            pytorch优化memo |
         
         格物致知
     </title>
@@ -99,7 +99,7 @@
                         </li>
                     
                         
-                        <li class="menu-item flex-start border-box active">
+                        <li class="menu-item flex-start border-box">
                             <a class="menu-text-color border-box" href="/about">
                                 
                                 关于
@@ -148,7 +148,7 @@
                 </li>
             
                 
-                <li class="drawer-menu-item border-box not-sub-menu active">
+                <li class="drawer-menu-item border-box not-sub-menu">
                     <label class="drawer-menu-label border-box">
                         <a class="drawer-menu-text-color left-side flex-start border-box" href="/about">
                             
@@ -175,46 +175,170 @@
                 
 
                     
-
 <div class="fade-in-down-animation">
-    <div class="page-template-container border-box keep-container has-page-cover">
-        <!-- page top -->
+    <div class="post-page-container border-box">
+        <div class="post-content-container border-box">
+            
+
+            <div class="post-content-bottom border-box">
+                
+                    <div class="post-title">
+                        pytorch优化memo
+                    </div>
+                
+
+                
+                    <div class="post-header border-box">
+                        
+                            <div class="avatar-box border-box">
+                                <img src="/images/bige.jpg">
+                            </div>
+                        
+                        <div class="info-box">
+                            <div class="author border-box">
+                                <span class="name">frc99</span>
+                                
+                                    <span class="author-badge">中本葱</span>
+                                
+                            </div>
+                            <div class="meta-info border-box">
+                                
+
+<div class="post-meta-info-container border-box post">
+    <div class="post-meta-info border-box">
         
-            <div class="page-template-top border-box"
-                 style="height: 200px"
-            >
-                <img class="page-cover" src="https://img1.baidu.com/it/u=2523242416,2388336867&fm=253&fmt=auto&app=138&f=JPEG"
-                     onerror="this.style.display = 'none'"
-                >
+
+        
+            <span class="meta-info-item post-create-date">
+                <i class="icon fa-solid fa-calendar-plus"></i>&nbsp;
+                <span class="datetime">2025-03-06 16:14:02</span>
+            </span>
+
+            
+                <span class="meta-info-item post-update-date">
+                    <i class="icon fa-solid fa-file-pen"></i>&nbsp;
+                    <span class="datetime" data-updated="Thu Mar 06 2025 17:37:08 GMT+0800">2025-03-06 17:37:08</span>
+                </span>
+            
+        
+
+        
+
+        
+            <span class="post-tag meta-info-item border-box">
+                <ul class="post-tag-ul">
+                    
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/pytorch/">pytorch</a></li>
+                        
+                    
+                </ul>
+            </span>
+        
+
+        
+        
+        
+        
+    </div>
+
+    
+</div>
+
+                            </div>
+                        </div>
+                    </div>
+                
+
+                <div class="post-content keep-markdown-body ">
+                    
+
+                    
+                         <h3 id="1-pin-memory-锁页内存"><a class="markdownIt-Anchor" href="#1-pin-memory-锁页内存"></a> 1  pin-memory 锁页内存</h3>
+<p><img   src="https://s3.bmp.ovh/imgs/2025/03/06/8b47f1a3efac2bc7.jpg"  alt="pin-memory " ><br />
+CPU内存分配默认是可分页的，GPU无法直接从可分页CPU内存访问数据，因此需要先创建一个临时的缓冲区（pinned memory），把数据从可分页内存拷贝pinned内存上，然后GPU才能从pinned内存上读取数据，</p>
+<p>通过设置pin_memory=True，从一开始就把一部分内存给锁住（上图（右）），从而减少了Host内部的开销，避免了CPU内存拷贝时间。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">train_sampler = <span class="literal">None</span></span><br><span class="line">train_loader = torch.utils.data.DataLoader(</span><br><span class="line">	train_dataset,</span><br><span class="line">		...,</span><br><span class="line">		pin_memory=<span class="literal">True</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> data, labels <span class="keyword">in</span> train_loader:</span><br><span class="line">	data = data.to(<span class="string">&#x27;cuda:0&#x27;</span>, non_blocking=<span class="literal">True</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="2-non_blocking-异步"><a class="markdownIt-Anchor" href="#2-non_blocking-异步"></a> 2 non_blocking 异步</h3>
+<p>从Host端（主机侧）来看，device 侧的操作可以分为：异步 和 同步 。</p>
+<ul>
+<li>异步操作：在调用接口或者kernel launch后，立刻将控制权交还给CPU，不阻塞主机继续执行
+<ul>
+<li>核函数（kernel function）</li>
+<li>cuda的非阻塞接口，比如 cudaMemcpyAsync、cudaMemsetAsync、cudaEventQuery 等</li>
+</ul>
+</li>
+<li>同步操作：阻塞主机的执行，直至当前操作执行完毕。
+<ul>
+<li>内存操作接口：cudaMemcpy 、cudaMemset、cudaSetDevice 等</li>
+<li>设备相关接口：cudaSetDevice、cudaGetDeviceProperties 等</li>
+</ul>
+</li>
+</ul>
+ <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">data = data.to(<span class="string">&#x27;cuda:0&#x27;</span>, non_blocking=<span class="literal">True</span>)</span><br></pre></td></tr></table></figure>
+<p>non_blocking=True用于指定是否启用异步数据传输。对于非默认stream，non-default stream上的所有操作相对于 host code 都是 non-blocking 的，即它们不会阻塞Host代码。意思是，等于可能是多流操作，可能是cudaMemcpyAsync（？）。</p>
+<hr />
+<p>摘自<a class="link"   target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/477870660" >https://zhuanlan.zhihu.com/p/477870660<i class="fas fa-external-link-alt"></i></a></p>
+
+                    
+                </div>
+
+                
+
+                <div class="post-bottom-tags-and-share border-box">
+                    <div>
+                        
+                            <ul class="post-tags-box border-box">
+                                
+                                    <li class="tag-item border-box">
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/pytorch/">pytorch</a>
+                                    </li>
+                                
+                            </ul>
+                        
+                    </div>
+                    <div>
+                        
+                    </div>
+                </div>
+
+                
+
+                
+                    <div class="post-nav border-box">
+                        
+                        
+                            <div class="next-post">
+                                <a class="next"
+                                   rel="next"
+                                   href="/2025/02/07/pytorch-%E6%95%B0%E6%8D%AE%E6%93%8D%E4%BD%9C%E5%92%8C%E5%B9%BF%E6%92%AD/"
+                                   title="pytorch 数据操作和广播"
+                                >
+                                    <span class="title flex-center">
+                                        <span class="post-nav-title-item text-ellipsis">pytorch 数据操作和广播</span>
+                                        <span class="post-nav-item">下一篇</span>
+                                    </span>
+                                    <span class="right arrow-icon flex-center">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </span>
+                                </a>
+                            </div>
+                        
+                    </div>
+                
+
+                
+                    
+
+
+
+
+
+
                 
             </div>
-        
-
-        <!-- page bottom -->
-        <div class="page-template-bottom border-box">
-            <!-- use page template -->
-            
-
-            <!-- page content -->
-            <div class="page-content border-box keep-markdown-body ">
-                
-                    <h1 id="about-me"><a class="markdownIt-Anchor" href="#about-me"></a> About me</h1>
-<p>向着星辰与深渊，出发！</p>
-
-                
-            </div>
-
-            <!-- comment plugin -->
-            
-                
-
-
-
-
-
-
-            
         </div>
+
+        
     </div>
 </div>
 
@@ -248,6 +372,27 @@
     </div>
 
     <!-- post tools -->
+    
+        <div class="post-tools right-toc">
+            <div class="post-tools-container border-box">
+    <ul class="post-tools-list border-box">
+        <!-- PC encrypt again -->
+        
+
+        <!-- PC TOC show toggle -->
+        
+
+        <!-- PC go comment -->
+        
+
+        <!-- PC full screen -->
+        <li class="tools-item flex-center full-screen">
+            <i class="fa-solid fa-expand"></i>
+        </li>
+    </ul>
+</div>
+
+        </div>
     
 
     <!-- side tools -->
@@ -341,6 +486,20 @@
     
 
     <!-- post page -->
+    
+        <!-- post-helper -->
+        
+<script src="/js/post/post-helper.js"></script>
+
+
+        <!-- toc -->
+        
+
+        <!-- copyright-info -->
+        
+
+        <!-- share -->
+        
     
 
     <!-- categories page -->
